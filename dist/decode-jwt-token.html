@@ -1,0 +1,142 @@
+<html>
+
+<head>
+  <script>
+    // @ts-check
+    function handelDecode(value) {
+      /**
+       * @type {HTMLPreElement}
+       */
+      const _decodedJwtPreHtml = decodedJwtPreHtml;
+
+      try {
+        const decodedJwt = decodeJwtPayload(value);
+        _decodedJwtPreHtml.textContent = JSON.stringify(decodedJwt, null, '  ');
+        console.clear();
+        window.lastResult = decodedJwt;
+        console.log('use global variable "lastResult"');
+        console.log(decodedJwt);
+
+        function decodeJwtPayload(token) {
+          const parts = token.split('.');
+          if (parts.length !== 3) {
+            throw new Error('Некорректный JWT токен.');
+          }
+
+          const payloadBase64 = base64UrlToBase64(parts[1]);
+          const payloadDecoded = atob(payloadBase64);
+
+          try {
+            const payload = decodeURIComponent(payloadDecoded.split('').map(function (c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
+            return JSON.parse(payload);
+          } catch (e) {
+            throw new Error('Ошибка декодирования JWT: ' + e.message);
+          }
+        }
+
+        function base64UrlToBase64(input) {
+          // Заменяем символы Base64URL на символы стандартной Base64
+          let base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+          // Дополняем строку до длины, кратной 4, символами "="
+          const pad = base64.length % 4;
+          if (pad) {
+            if (pad === 1) {
+              throw new Error('Некорректная длина Base64URL строки.');
+            }
+            base64 += new Array(5 - pad).join('=');
+          }
+          return base64;
+        }
+      }
+      catch (err) {
+        _decodedJwtPreHtml.textContent = 'ERROR\n' + err.message;
+        console.clear();
+        console.error();
+      }
+    }
+  </script>
+</head>
+
+<body>
+
+  <main>
+    <header>
+      <a href="https://github.com/origin721/decode-jwt-token"  referrerpolicy="no-referrer" rel="noopener noreferrer">github</a>
+      <h1> JWT TOKEN</h1>
+      <a
+        referrerpolicy="no-referrer"
+        rel="noopener noreferrer"
+        target="_blank"
+        href="https://github.com/origin721/decode-jwt-token/raw/main/decode-jwt-token.html"
+      >
+          download last version
+      </a>
+    </header>
+    <div class="content">
+      <textarea placeholder="Введите jwt токен" class="resize-none" oninput="handelDecode(this.value)"></textarea>
+      <pre id="decodedJwtPreHtml"></pre>
+    </div>
+  </main>
+
+  <style>
+    html,
+    textarea {
+      font-size: 18px;
+    }
+
+    html,
+    body,
+    main {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    h1::before {
+      color: teal;
+      content: "DECODED";
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content {
+      display: flex;
+      flex: 1;
+    }
+
+    .content>* {
+      flex: 1;
+      margin: 1rem;
+      margin-top: 0;
+    }
+
+    .resize-none {
+      resize: none;
+    }
+
+    #decodedJwtPreHtml {
+      outline: solid 2px teal;
+      overflow: auto;
+      text-wrap: wrap;
+    }
+  </style>
+
+</body>
+
+</html>
